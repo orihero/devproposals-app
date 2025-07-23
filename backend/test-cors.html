@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Test</title>
+</head>
+<body>
+    <h1>CORS Test</h1>
+    <button onclick="testAllowedOrigin()">Test Allowed Origin</button>
+    <button onclick="testBlockedOrigin()">Test Blocked Origin</button>
+    <div id="results"></div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+
+        function log(message) {
+            resultsDiv.innerHTML += `<p>${new Date().toLocaleTimeString()}: ${message}</p>`;
+        }
+
+        async function testAllowedOrigin() {
+            try {
+                log('Testing allowed origin (localhost:3000)...');
+                const response = await fetch('http://localhost:3001/health', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Success: ${JSON.stringify(data)}`);
+                } else {
+                    log(`❌ Error: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                log(`❌ CORS Error: ${error.message}`);
+            }
+        }
+
+        async function testBlockedOrigin() {
+            try {
+                log('Testing blocked origin (malicious-site.com)...');
+                // Simulate a request from a different origin
+                const response = await fetch('http://localhost:3001/health', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': 'http://malicious-site.com'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Success: ${JSON.stringify(data)}`);
+                } else {
+                    log(`❌ Error: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                log(`❌ CORS Error: ${error.message}`);
+            }
+        }
+
+        // Test on page load
+        window.onload = function() {
+            log('CORS Test Page Loaded');
+            log('Click buttons to test CORS configuration');
+        };
+    </script>
+</body>
+</html> 

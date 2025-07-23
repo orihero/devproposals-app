@@ -1,0 +1,14 @@
+{
+  "name": "devproposals-app-root",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "@iconify/react": "^6.0.0"
+  }
+}
