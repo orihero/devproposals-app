@@ -15,15 +15,24 @@ declare global {
   }
 }
 
-export const authenticateClerk = async (
+export const authenticateToken = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
+    console.log('🔍 Auth middleware - Request headers:', {
+      authorization: !!req.headers.authorization,
+      'x-clerk-id': !!req.headers['x-clerk-id'],
+      'user-agent': req.headers['user-agent'],
+      url: req.url,
+      method: req.method
+    });
+    
     const authHeader = req.headers.authorization;
     
     if (!authHeader) {
+      console.log('❌ No authorization header found');
       res.status(401).json({
         success: false,
         error: {
@@ -36,10 +45,9 @@ export const authenticateClerk = async (
 
     // Extract token from Bearer header
     const token = authHeader.replace('Bearer ', '');
-    console.log('🔐 Received token:', token.substring(0, 20) + '...');
+    console.log('🔐 Received token from frontend:', token.substring(0, 20) + '...');
     
-    // For now, we'll use a simple token verification
-    // In production, you should verify the JWT token with Clerk's public key
+    // Parse the JWT token to extract user information
     const tokenData = parseJwt(token);
     console.log('🔍 Parsed token data:', tokenData);
     
@@ -55,22 +63,20 @@ export const authenticateClerk = async (
       return;
     }
 
-    // Find or create user in our database
-    let user = await User.findOne({ clerkId: tokenData.sub });
+    // Find user in our database using clerkId
+    const user = await User.findOne({ clerkId: tokenData.sub });
     console.log('👤 User lookup result:', { found: !!user, clerkId: tokenData.sub });
     
     if (!user) {
-      // Create new user in our database
-      console.log('➕ Creating new user with clerkId:', tokenData.sub);
-      user = new User({
-        clerkId: tokenData.sub,
-        email: tokenData.email || '',
-        name: tokenData.name || 'User',
-        role: 'user',
-        imageUrl: tokenData.picture,
+      console.log('❌ User not found in database:', tokenData.sub);
+      res.status(401).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found. Please sign up first.',
+        },
       });
-      await user.save();
-      console.log('✅ New user created:', user._id);
+      return;
     }
 
     // Set user info in request
@@ -84,7 +90,7 @@ export const authenticateClerk = async (
 
     next();
   } catch (error) {
-    console.error('❌ Clerk authentication error:', error);
+    console.error('❌ Token authentication error:', error);
     res.status(401).json({
       success: false,
       error: {
@@ -95,7 +101,7 @@ export const authenticateClerk = async (
   }
 };
 
-// Simple JWT parser (for development - use proper verification in production)
+// JWT parser for Clerk tokens
 function parseJwt(token: string) {
   try {
     console.log('🔍 Parsing JWT token...');

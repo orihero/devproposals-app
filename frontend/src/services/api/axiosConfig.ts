@@ -3,8 +3,8 @@ import type { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
-  timeout: 10000,
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  timeout: 60000, // Increased to 60 seconds for file processing and AI analysis
   headers: {
     'Content-Type': 'application/json',
   },
@@ -24,6 +24,9 @@ apiClient.interceptors.request.use(
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('🔐 Adding auth token to request:', config.url, 'Token length:', token.length);
+    } else {
+      console.log('⚠️ No auth token available for request:', config.url);
     }
     
     // Add CORS headers
@@ -49,13 +52,11 @@ apiClient.interceptors.response.use(
       return Promise.reject(new Error('Network error - please check your connection and CORS configuration'));
     }
     
-    // Handle authentication errors
+    // Handle authentication errors - REMOVED AUTOMATIC LOGOUT
     if (error.response?.status === 401) {
       console.error('Authentication error:', error.response?.data);
-      // Clear token and redirect to login
-      localStorage.removeItem('auth_token');
-      window.location.href = '/sign-in';
-      return Promise.reject(new Error('Authentication failed - please sign in again'));
+      // Don't automatically logout - let the calling code decide
+      return Promise.reject(new Error('Authentication failed - token may be invalid or expired'));
     }
     
     // Handle CORS errors

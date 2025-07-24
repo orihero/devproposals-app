@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { useSignIn } from '@clerk/clerk-react';
+import { useSignIn, useUser, useAuth } from '@clerk/clerk-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { useAuthStore } from '../../stores/authStore';
+import { resetAuthenticationState, forceRedirectToSignIn, nuclearReset, clearClerkCookies } from '../../utils/authReset';
 
 const SignInPage: React.FC = () => {
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { user: clerkUser } = useUser();
+  const { isSignedIn } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -71,16 +74,63 @@ const SignInPage: React.FC = () => {
     setError('');
 
     try {
+      console.log('🚀 Starting Google OAuth flow...');
       await signIn.authenticateWithRedirect({
         strategy: 'oauth_google',
         redirectUrl: '/dashboard',
         redirectUrlComplete: '/dashboard',
       });
+      console.log('✅ Google OAuth redirect initiated');
     } catch (err: any) {
-      console.error('Google sign in error:', err);
+      console.error('❌ Google sign in error:', err);
       setError('Google sign in failed. Please try again.');
       setIsLoading(false);
     }
+  };
+
+  const handleTestAuth = async () => {
+    console.log('🧪 Testing authentication state...');
+    console.log('Clerk User:', clerkUser);
+    console.log('Is Signed In:', isSignedIn);
+    console.log('Is Loaded:', isLoaded);
+    
+    if (isSignedIn && clerkUser) {
+      try {
+        const token = await (window as any).Clerk?.session?.getToken();
+        console.log('Token available:', !!token);
+        
+        if (token) {
+          const store = useAuthStore.getState();
+          await store.fetchProfile();
+          const user = useAuthStore.getState().user;
+          console.log('Backend user:', user);
+        }
+      } catch (error) {
+        console.error('Test auth error:', error);
+      }
+    }
+  };
+
+  const handleForceReset = () => {
+    console.log('🔄 Force resetting authentication state...');
+    resetAuthenticationState();
+    window.location.reload();
+  };
+
+  const handleNuclearReset = () => {
+    console.log('☢️ Nuclear reset...');
+    nuclearReset();
+  };
+
+  const handleRedirectToSignIn = () => {
+    console.log('🔄 Force redirecting to sign-in...');
+    forceRedirectToSignIn();
+  };
+
+  const handleClearClerkCookies = () => {
+    console.log('🍪 Clearing Clerk cookies...');
+    clearClerkCookies();
+    // Don't reload immediately, let user try again
   };
 
   if (!isLoaded) {
@@ -123,6 +173,55 @@ const SignInPage: React.FC = () => {
             >
               <Icon icon="logos:google-icon" className="w-5 h-5 mr-3" />
               Sign in with Google
+            </button>
+            
+            {/* Debug buttons - remove in production */}
+            <button
+              onClick={handleTestAuth}
+              type="button"
+              className="w-full bg-gray-100 border border-gray-300 text-gray-600 hover:bg-gray-200 font-medium py-2 px-4 rounded-xl transition-all duration-200 flex items-center justify-center text-sm mb-2"
+            >
+              🧪 Test Auth State
+            </button>
+            
+            <button
+              onClick={handleForceReset}
+              type="button"
+              className="w-full bg-red-100 border border-red-300 text-red-600 hover:bg-red-200 font-medium py-2 px-4 rounded-xl transition-all duration-200 flex items-center justify-center text-sm mb-2"
+            >
+              🔄 Force Reset Auth
+            </button>
+            
+            <button
+              onClick={handleNuclearReset}
+              type="button"
+              className="w-full bg-orange-100 border border-orange-300 text-orange-600 hover:bg-orange-200 font-medium py-2 px-4 rounded-xl transition-all duration-200 flex items-center justify-center text-sm mb-2"
+            >
+              ☢️ Nuclear Reset
+            </button>
+            
+            <button
+              onClick={handleRedirectToSignIn}
+              type="button"
+              className="w-full bg-blue-100 border border-blue-300 text-blue-600 hover:bg-blue-200 font-medium py-2 px-4 rounded-xl transition-all duration-200 flex items-center justify-center text-sm mb-2"
+            >
+              🚀 Force Sign-In Redirect
+            </button>
+            
+            <button
+              onClick={handleClearClerkCookies}
+              type="button"
+              className="w-full bg-yellow-100 border border-yellow-300 text-yellow-600 hover:bg-yellow-200 font-medium py-2 px-4 rounded-xl transition-all duration-200 flex items-center justify-center text-sm"
+            >
+              🍪 Clear Clerk Cookies
+            </button>
+
+            <button
+              onClick={handleClearClerkCookies}
+              type="button"
+              className="w-full bg-yellow-100 border border-yellow-300 text-yellow-600 hover:bg-yellow-200 font-medium py-2 px-4 rounded-xl transition-all duration-200 flex items-center justify-center text-sm"
+            >
+              🍪 Clear Clerk Cookies
             </button>
           </div>
 

@@ -8,6 +8,8 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import SignInPage from './components/auth/SignInPage';
 import SignUpPage from './components/auth/SignUpPage';
 import Home from './pages/home/Home';
+import ProjectsPage from './pages/projects/ProjectsPage';
+import ProjectDetailPage from './pages/projects/ProjectDetailPage';
 
 // Import your Clerk publishable key
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_demo-key';
@@ -18,6 +20,12 @@ if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
   console.warn('📝 Create a .env file in the frontend directory with:');
   console.warn('   VITE_CLERK_PUBLISHABLE_KEY=your-clerk-publishable-key');
 }
+
+console.log('🔧 Clerk Configuration:', {
+  publishableKey: CLERK_PUBLISHABLE_KEY,
+  isDemoKey: CLERK_PUBLISHABLE_KEY === 'pk_test_demo-key',
+  hasEnvKey: !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+});
 
 // Custom redirect component for unauthenticated users
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -69,6 +77,24 @@ function App() {
             <Route 
               path="/dashboard" 
               element={<RoleBasedDashboard />} 
+            />
+            
+            {/* Projects routes */}
+            <Route 
+              path="/projects" 
+              element={
+                <RequireAuth>
+                  <ProjectsPage />
+                </RequireAuth>
+              } 
+            />
+            <Route 
+              path="/projects/:projectId" 
+              element={
+                <RequireAuth>
+                  <ProjectDetailPage />
+                </RequireAuth>
+              } 
             />
             
             {/* Admin routes */}

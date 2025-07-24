@@ -79,13 +79,15 @@ const SignUpPage: React.FC = () => {
     setError('');
 
     try {
+      console.log('🚀 Starting Google OAuth sign-up flow...');
       await signUp.authenticateWithRedirect({
         strategy: 'oauth_google',
         redirectUrl: '/dashboard',
         redirectUrlComplete: '/dashboard',
       });
+      console.log('✅ Google OAuth sign-up redirect initiated');
     } catch (err: any) {
-      console.error('Google sign up error:', err);
+      console.error('❌ Google sign up error:', err);
       setError('Google sign up failed. Please try again.');
       setIsLoading(false);
     }
@@ -213,27 +215,16 @@ const SignUpPage: React.FC = () => {
                   autoComplete="tel"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-r-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
-                  placeholder="e.g., (123) 456-7890"
+                  className="block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-r-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                  placeholder="e.g., (555) 123-4567"
                 />
               </div>
-            </div>
-
-            <div className="text-center text-sm text-gray-600 mb-6">
-              By clicking Continue, you agree to our{' '}
-              <a href="#" className="text-green-600 hover:text-green-500 font-medium">
-                Terms of Use
-              </a>{' '}
-              and{' '}
-              <a href="#" className="text-green-600 hover:text-green-500 font-medium">
-                Privacy Policy
-              </a>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-green-500 text-white font-medium py-3 px-4 rounded-xl hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+              className="w-full bg-green-600 text-white font-medium py-3 px-4 rounded-xl hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
@@ -241,7 +232,7 @@ const SignUpPage: React.FC = () => {
                   Creating account...
                 </div>
               ) : (
-                'Continue'
+                'Create Account'
               )}
             </button>
           </form>
@@ -250,7 +241,7 @@ const SignUpPage: React.FC = () => {
             <p className="text-sm text-gray-600">
               Already have an account?{' '}
               <Link to="/sign-in" className="font-medium text-green-600 hover:text-green-500 transition-colors">
-                Login
+                Sign in
               </Link>
             </p>
           </div>
@@ -258,23 +249,23 @@ const SignUpPage: React.FC = () => {
       </div>
 
       {/* Right Side - Abstract Graphic */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 relative overflow-hidden">
         <div className="absolute inset-0">
           {/* Abstract 3D shapes */}
           <div className="absolute top-10 right-10 w-32 h-32 bg-white bg-opacity-80 rounded-full blur-sm"></div>
-          <div className="absolute top-20 left-10 w-24 h-24 bg-blue-200 bg-opacity-60 rounded-full blur-sm"></div>
-          <div className="absolute top-1/3 right-1/4 w-20 h-20 bg-pink-200 bg-opacity-60 rounded-full blur-sm"></div>
-          <div className="absolute bottom-1/3 left-1/3 w-28 h-28 bg-peach-200 bg-opacity-60 rounded-full blur-sm"></div>
+          <div className="absolute top-20 left-10 w-24 h-24 bg-green-200 bg-opacity-60 rounded-full blur-sm"></div>
+          <div className="absolute top-1/3 right-1/4 w-20 h-20 bg-blue-200 bg-opacity-60 rounded-full blur-sm"></div>
+          <div className="absolute bottom-1/3 left-1/3 w-28 h-28 bg-purple-200 bg-opacity-60 rounded-full blur-sm"></div>
           <div className="absolute bottom-20 right-1/4 w-16 h-16 bg-white bg-opacity-80 rounded-full blur-sm"></div>
           
           {/* Floral elements */}
-          <div className="absolute top-1/4 left-1/4 w-12 h-12 bg-peach-300 bg-opacity-40 rounded-full"></div>
-          <div className="absolute top-1/2 right-1/3 w-8 h-8 bg-pink-300 bg-opacity-40 rounded-full"></div>
-          <div className="absolute bottom-1/4 right-1/3 w-10 h-10 bg-coral-300 bg-opacity-40 rounded-full"></div>
+          <div className="absolute top-1/4 left-1/4 w-12 h-12 bg-green-300 bg-opacity-40 rounded-full"></div>
+          <div className="absolute top-1/2 right-1/3 w-8 h-8 bg-blue-300 bg-opacity-40 rounded-full"></div>
+          <div className="absolute bottom-1/4 right-1/3 w-10 h-10 bg-purple-300 bg-opacity-40 rounded-full"></div>
           
           {/* Swirling patterns */}
-          <div className="absolute top-1/3 left-1/2 w-16 h-16 bg-blue-200 bg-opacity-30 rounded-full transform rotate-45"></div>
-          <div className="absolute bottom-1/3 right-1/2 w-12 h-12 bg-purple-200 bg-opacity-30 rounded-full transform -rotate-45"></div>
+          <div className="absolute top-1/3 left-1/2 w-16 h-16 bg-green-200 bg-opacity-30 rounded-full transform rotate-45"></div>
+          <div className="absolute bottom-1/3 right-1/2 w-12 h-12 bg-blue-200 bg-opacity-30 rounded-full transform -rotate-45"></div>
         </div>
       </div>
     </div>

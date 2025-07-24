@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { User, Project, Proposal } from './models';
 import authRoutes from './routes/auth';
+import projectRoutes from './routes/projects';
+import proposalRoutes from './routes/proposals';
+import uploadRoutes from './routes/upload';
 
 dotenv.config();
 
@@ -82,8 +85,14 @@ app.use((req: Request, res: Response, next) => {
   next();
 });
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
+
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/proposals', proposalRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
@@ -110,10 +119,27 @@ app.get('/health', (req: Request, res: Response) => {
     auth: {
       provider: 'Clerk',
       endpoints: [
+        'POST /api/auth/signup',
+        'POST /api/auth/login',
         'GET /api/auth/me',
         'PUT /api/auth/me',
         'GET /api/auth/users',
-        'PUT /api/auth/users/:userId/role'
+        'PUT /api/auth/users/:userId/role',
+        'POST /api/auth/logout'
+      ]
+    },
+    projects: {
+      endpoints: [
+        'POST /api/projects',
+        'GET /api/projects',
+        'GET /api/projects/:projectId',
+        'PUT /api/projects/:projectId',
+        'DELETE /api/projects/:projectId'
+      ]
+    },
+    upload: {
+      endpoints: [
+        'POST /api/upload/document'
       ]
     },
     cors: {
@@ -132,10 +158,19 @@ app.use('*', (req: Request, res: Response) => {
     availableRoutes: [
       'GET /',
       'GET /health',
+      'POST /api/auth/signup',
+      'POST /api/auth/login',
       'GET /api/auth/me',
       'PUT /api/auth/me',
       'GET /api/auth/users',
-      'PUT /api/auth/users/:userId/role'
+      'PUT /api/auth/users/:userId/role',
+      'POST /api/auth/logout',
+      'POST /api/projects',
+      'GET /api/projects',
+      'GET /api/projects/:projectId',
+      'PUT /api/projects/:projectId',
+      'DELETE /api/projects/:projectId',
+      'POST /api/upload/document'
     ]
   });
 });

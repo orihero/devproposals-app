@@ -10,8 +10,8 @@ export interface IProposal extends Document {
   projectId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   proposalFile?: string;
-  totalCost: number;
-  timeline: number;
+  totalCost?: number;
+  timeline?: number;
   features: string[];
   companyName?: string;
   companyLogo?: string;
@@ -55,13 +55,13 @@ const proposalSchema = new Schema<IProposal>({
   },
   totalCost: {
     type: Number,
-    required: true,
+    required: false,
     min: 0,
   },
   timeline: {
     type: Number,
-    required: true,
-    min: 1, // At least 1 day
+    required: false,
+    min: 1, // At least 1 day if provided
   },
   features: [{
     type: String,

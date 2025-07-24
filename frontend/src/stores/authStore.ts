@@ -65,12 +65,26 @@ export const useAuthStore = create<AuthStore>()(
           set({ user, isAuthenticated: true, loading: false });
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Failed to fetch profile';
-          set({ 
-            error: errorMessage, 
-            loading: false, 
-            user: null, 
-            isAuthenticated: false 
-          });
+          console.error('Profile fetch error:', error);
+          
+          // Only clear user state for authentication errors, not other API errors
+          if (error instanceof Error && error.message.includes('Authentication failed')) {
+            console.log('🔐 Authentication error detected, clearing user state');
+            set({ 
+              error: errorMessage, 
+              loading: false, 
+              user: null, 
+              isAuthenticated: false 
+            });
+          } else {
+            // For other errors (network, server, etc.), keep the user state but show error
+            console.log('⚠️ Non-auth error, keeping user state');
+            set({ 
+              error: errorMessage, 
+              loading: false 
+              // Don't clear user or isAuthenticated
+            });
+          }
         }
       },
 

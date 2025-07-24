@@ -2,9 +2,8 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IProject extends Document {
   title: string;
-  description: string;
   userId: mongoose.Types.ObjectId;
-  prdFile?: string;
+  documentFile?: string;
   budget?: number;
   duration?: number;
   status: 'active' | 'completed' | 'on-hold';
@@ -18,17 +17,12 @@ const projectSchema = new Schema<IProject>({
     required: true,
     trim: true,
   },
-  description: {
-    type: String,
-    required: true,
-    trim: true,
-  },
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
-  prdFile: {
+  documentFile: {
     type: String,
     required: false, // Optional file path or URL
   },

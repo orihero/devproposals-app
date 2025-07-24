@@ -4,6 +4,7 @@ import type { AxiosResponse } from 'axios';
 // Types
 export interface User {
   id: string;
+  clerkId: string;
   email: string;
   name: string;
   role: 'user' | 'admin';
@@ -14,55 +15,78 @@ export interface User {
 
 export interface AuthResponse {
   success: boolean;
-  data: {
-    user: User;
-  };
+  data: User;
   message?: string;
 }
 
 export interface UsersResponse {
   success: boolean;
-  data: {
-    users: User[];
-  };
+  data: User[];
 }
 
 export interface UpdateProfileData {
   name?: string;
+  email?: string;
 }
 
 export interface UpdateUserRoleData {
   role: 'user' | 'admin';
 }
 
+export interface SignupData {
+  clerkId: string;
+  email: string;
+  name: string;
+  imageUrl?: string;
+}
+
+export interface LoginData {
+  clerkId: string;
+  email?: string;
+  name?: string;
+  imageUrl?: string;
+}
+
 // Auth API service
 export const authService = {
+  // Sign up new user
+  signup: async (data: SignupData): Promise<User> => {
+    const response: AxiosResponse<AuthResponse> = await apiClient.post('/api/auth/signup', data);
+    return response.data.data;
+  },
+
+  // Login user
+  login: async (data: LoginData): Promise<User> => {
+    const response: AxiosResponse<AuthResponse> = await apiClient.post('/api/auth/login', data);
+    return response.data.data;
+  },
+
   // Get current user profile
   getProfile: async (): Promise<User> => {
-    const response: AxiosResponse<AuthResponse> = await apiClient.get('/auth/me');
-    return response.data.data.user;
+    const response: AxiosResponse<AuthResponse> = await apiClient.get('/api/auth/me');
+    return response.data.data;
   },
 
   // Update user profile
   updateProfile: async (data: UpdateProfileData): Promise<User> => {
-    const response: AxiosResponse<AuthResponse> = await apiClient.put('/auth/me', data);
-    return response.data.data.user;
+    const response: AxiosResponse<AuthResponse> = await apiClient.put('/api/auth/me', data);
+    return response.data.data;
   },
 
   // Get all users (admin only)
   getUsers: async (): Promise<User[]> => {
-    const response: AxiosResponse<UsersResponse> = await apiClient.get('/auth/users');
-    return response.data.data.users;
+    const response: AxiosResponse<UsersResponse> = await apiClient.get('/api/auth/users');
+    return response.data.data;
   },
 
   // Update user role (admin only)
   updateUserRole: async (userId: string, role: 'user' | 'admin'): Promise<void> => {
-    await apiClient.put(`/auth/users/${userId}/role`, { role });
+    await apiClient.put(`/api/auth/users/${userId}/role`, { role });
   },
 
   // Logout (client-side)
   logout: async (): Promise<void> => {
-    await apiClient.post('/auth/logout');
+    await apiClient.post('/api/auth/logout');
   },
 };
 

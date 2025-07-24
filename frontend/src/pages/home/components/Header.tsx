@@ -11,11 +11,8 @@ const Header = () => (
     </Link>
     {/* Navigation */}
     <nav className="hidden md:flex gap-8 text-base font-medium text-gray-700">
-      <a href="#about" className="hover:text-violet-700 transition">About Us</a>
-      <a href="#pages" className="hover:text-violet-700 transition">Inner pages</a>
-      <a href="#features" className="hover:text-violet-700 transition">Features</a>
-      <a href="#pricing" className="hover:text-violet-700 transition">Pricing</a>
-      <a href="#contact" className="hover:text-violet-700 transition">Contact us</a>
+      <Link to="/dashboard" className="hover:text-violet-700 transition">Dashboard</Link>
+      <Link to="/projects" className="hover:text-violet-700 transition">Projects</Link>
     </nav>
     {/* CTAs */}
     <div className="flex gap-3 items-center">

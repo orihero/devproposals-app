@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+- The user prefers minimal, focused responses that only address their specific requests without overdevelopment, extra features, or running/testing code. The user will handle testing and running themselves. Avoid overcommitting and stick to exact requirements only. (ID: 2407436) 
