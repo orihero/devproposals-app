@@ -9,7 +9,7 @@ const ProjectsPage: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleProjectCreated = (project: Project) => {
+  const handleProjectCreated = () => {
     setShowCreateForm(false);
     setRefreshTrigger(prev => prev + 1);
   };

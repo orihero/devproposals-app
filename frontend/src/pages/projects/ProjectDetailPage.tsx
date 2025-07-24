@@ -43,7 +43,7 @@ const ProjectDetailPage: React.FC = () => {
     fetchProjectDetails();
   }, [projectId, refreshTrigger]);
 
-  const handleProposalCreated = (proposal: Proposal) => {
+  const handleProposalCreated = () => {
     setShowCreateForm(false);
     setRefreshTrigger(prev => prev + 1);
   };
