@@ -69,5 +69,11 @@ export const projectService = {
   async deleteProject(projectId: string): Promise<{ message: string; projectId: string }> {
     const response = await apiClient.delete(`/api/projects/${projectId}`);
     return response.data;
+  },
+
+  // Get projects by user ID (admin only)
+  async getProjectsByUser(userId: string): Promise<{ projects: Project[] }> {
+    const response = await apiClient.get(`/api/projects/user/${userId}`);
+    return response.data;
   }
 }; 

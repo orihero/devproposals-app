@@ -10,6 +10,11 @@ import SignUpPage from './components/auth/SignUpPage';
 import Home from './pages/home/Home';
 import ProjectsPage from './pages/projects/ProjectsPage';
 import ProjectDetailPage from './pages/projects/ProjectDetailPage';
+import UsersPage from './pages/admin/UsersPage';
+import UserDetailPage from './pages/admin/UserDetailPage';
+import UserProjectsPage from './pages/admin/UserProjectsPage';
+import AdminIndexPage from './pages/admin/AdminIndexPage';
+import UserActivityPage from './pages/admin/UserActivityPage';
 
 // Import your Clerk publishable key
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_demo-key';
@@ -47,6 +52,20 @@ const RoleBasedDashboard: React.FC = () => {
     <>
       <SignedIn>
         <Dashboard />
+      </SignedIn>
+      <SignedOut>
+        <Navigate to="/sign-in" replace />
+      </SignedOut>
+    </>
+  );
+};
+
+// Admin dashboard component
+const AdminDashboardRoute: React.FC = () => {
+  return (
+    <>
+      <SignedIn>
+        <AdminDashboard />
       </SignedIn>
       <SignedOut>
         <Navigate to="/sign-in" replace />
@@ -102,7 +121,32 @@ function App() {
               path="/admin" 
               element={
                 <RequireAuth>
-                  <AdminDashboard />
+                  <AdminIndexPage />
+                </RequireAuth>
+              } 
+            />
+            <Route 
+              path="/admin/users" 
+              element={
+                <RequireAuth>
+                  <UsersPage />
+                </RequireAuth>
+              } 
+            />
+
+            <Route 
+              path="/admin/users/:userId" 
+              element={
+                <RequireAuth>
+                  <UserProjectsPage />
+                </RequireAuth>
+              } 
+            />
+            <Route 
+              path="/admin/users/:userId/edit" 
+              element={
+                <RequireAuth>
+                  <UserDetailPage />
                 </RequireAuth>
               } 
             />

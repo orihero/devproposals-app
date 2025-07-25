@@ -7,6 +7,8 @@ import authRoutes from './routes/auth';
 import projectRoutes from './routes/projects';
 import proposalRoutes from './routes/proposals';
 import uploadRoutes from './routes/upload';
+import projectSummaryRoutes from './routes/projectSummaries';
+import dashboardRoutes from './routes/dashboard';
 
 dotenv.config();
 
@@ -16,28 +18,7 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/devpro
 
 // CORS Configuration
 const corsOptions = {
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      process.env.FRONTEND_URL || 'http://localhost:3000',
-      process.env.FRONTEND_URL_HTTPS || 'https://localhost:3000',
-      'http://localhost:5173', // Vite dev server
-      'https://localhost:5173',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:5173',
-      'https://127.0.0.1:3000',
-      'https://127.0.0.1:5173'
-    ];
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.warn(`CORS blocked request from origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
@@ -81,7 +62,20 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Request logging middleware
 app.use((req: Request, res: Response, next) => {
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${req.method} ${req.path} - ${req.ip}`);
+  console.log(`📥 [${timestamp}] ${req.method} ${req.path} - ${req.ip}`);
+  console.log('📋 Request details:', {
+    method: req.method,
+    url: req.url,
+    path: req.path,
+    headers: {
+      'content-type': req.headers['content-type'],
+      'user-agent': req.headers['user-agent'],
+      'authorization': req.headers.authorization ? 'Present' : 'Missing',
+      'x-clerk-id': req.headers['x-clerk-id'] ? 'Present' : 'Missing'
+    },
+    body: req.body ? 'Present' : 'Empty',
+    query: Object.keys(req.query).length > 0 ? req.query : 'None'
+  });
   next();
 });
 
@@ -93,6 +87,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/project-summaries', projectSummaryRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
@@ -137,6 +133,14 @@ app.get('/health', (req: Request, res: Response) => {
         'DELETE /api/projects/:projectId'
       ]
     },
+    projectSummaries: {
+      endpoints: [
+        'POST /api/project-summaries/:projectId',
+        'GET /api/project-summaries/:projectId',
+        'PUT /api/project-summaries/:projectId',
+        'DELETE /api/project-summaries/:projectId'
+      ]
+    },
     upload: {
       endpoints: [
         'POST /api/upload/document'
@@ -170,6 +174,10 @@ app.use('*', (req: Request, res: Response) => {
       'GET /api/projects/:projectId',
       'PUT /api/projects/:projectId',
       'DELETE /api/projects/:projectId',
+      'POST /api/project-summaries/:projectId',
+      'GET /api/project-summaries/:projectId',
+      'PUT /api/project-summaries/:projectId',
+      'DELETE /api/project-summaries/:projectId',
       'POST /api/upload/document'
     ]
   });
@@ -178,14 +186,6 @@ app.use('*', (req: Request, res: Response) => {
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, next: any) => {
   console.error('Error:', err);
-  
-  if (err.message === 'Not allowed by CORS') {
-    return res.status(403).json({
-      error: 'CORS Error',
-      message: 'Origin not allowed by CORS policy',
-      origin: req.headers.origin
-    });
-  }
   
   res.status(err.status || 500).json({
     error: 'Internal Server Error',

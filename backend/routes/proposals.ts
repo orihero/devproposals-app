@@ -193,12 +193,29 @@ router.get('/:proposalId', authenticateToken, async (req: Request, res: Response
       });
     }
 
-    const proposal = await Proposal.findOne({
-      _id: proposalId,
-      userId: user.userId
-    }).select('-__v');
+    // Check if user is admin
+    const isAdmin = user.role === 'admin';
+    console.log('👤 User role check for proposal fetch:', { role: user.role, isAdmin });
+
+    let proposal;
+    if (isAdmin) {
+      // Admin can access any proposal
+      proposal = await Proposal.findById(proposalId).select('-__v');
+    } else {
+      // Regular users can only access their own proposals
+      proposal = await Proposal.findOne({
+        _id: proposalId,
+        userId: user.userId
+      }).select('-__v');
+    }
 
     if (!proposal) {
+      console.log('❌ Proposal not found for fetch:', { 
+        proposalId, 
+        userId: user.userId, 
+        isAdmin,
+        role: user.role 
+      });
       return res.status(404).json({
         error: 'Not Found',
         message: 'Proposal not found'
@@ -252,13 +269,30 @@ router.put('/:proposalId', authenticateToken, async (req: Request, res: Response
       });
     }
 
-    // Find proposal and verify ownership
-    const proposal = await Proposal.findOne({
-      _id: proposalId,
-      userId: user.userId
-    });
+    // Check if user is admin
+    const isAdmin = user.role === 'admin';
+    console.log('👤 User role check for proposal update:', { role: user.role, isAdmin });
+
+    // Find proposal and verify ownership (or admin access)
+    let proposal;
+    if (isAdmin) {
+      // Admin can update any proposal
+      proposal = await Proposal.findById(proposalId);
+    } else {
+      // Regular users can only update their own proposals
+      proposal = await Proposal.findOne({
+        _id: proposalId,
+        userId: user.userId
+      });
+    }
 
     if (!proposal) {
+      console.log('❌ Proposal not found for update:', { 
+        proposalId, 
+        userId: user.userId, 
+        isAdmin,
+        role: user.role 
+      });
       return res.status(404).json({
         error: 'Not Found',
         message: 'Proposal not found'
@@ -327,11 +361,23 @@ router.delete('/:proposalId', authenticateToken, async (req: Request, res: Respo
       });
     }
 
-    // Check if user is the proposal owner or the project owner
+    // Check if user is admin
+    const isAdmin = user.role === 'admin';
+    console.log('👤 User role check for proposal deletion:', { role: user.role, isAdmin });
+
+    // Check if user is the proposal owner, project owner, or admin
     const isProposalOwner = proposal.userId.toString() === user.userId;
     const isProjectOwner = proposal.projectId && (proposal.projectId as any).userId.toString() === user.userId;
 
-    if (!isProposalOwner && !isProjectOwner) {
+    if (!isAdmin && !isProposalOwner && !isProjectOwner) {
+      console.log('❌ Access denied for proposal deletion:', { 
+        proposalId, 
+        userId: user.userId, 
+        isAdmin,
+        role: user.role,
+        isProposalOwner,
+        isProjectOwner
+      });
       return res.status(403).json({
         error: 'Forbidden',
         message: 'You can only delete your own proposals or proposals for your projects'
@@ -384,13 +430,30 @@ router.post('/project/:projectId/summary', authenticateToken, async (req: Reques
       });
     }
 
+    // Check if user is admin
+    const isAdmin = user.role === 'admin';
+    console.log('👤 User role check for summary generation:', { role: user.role, isAdmin });
+
     // Get the project and its SOW/PRD document
-    const project = await Project.findOne({
-      _id: projectId,
-      userId: user.userId
-    });
+    let project;
+    if (isAdmin) {
+      // Admin can access any project
+      project = await Project.findById(projectId);
+    } else {
+      // Regular users can only access their own projects
+      project = await Project.findOne({
+        _id: projectId,
+        userId: user.userId
+      });
+    }
 
     if (!project) {
+      console.log('❌ Project not found for summary generation:', { 
+        projectId, 
+        userId: user.userId, 
+        isAdmin,
+        role: user.role 
+      });
       return res.status(404).json({
         error: 'Not Found',
         message: 'Project not found'

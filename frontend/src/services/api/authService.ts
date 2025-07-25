@@ -11,6 +11,10 @@ export interface User {
   imageUrl?: string;
   createdAt?: string;
   updatedAt?: string;
+  stats?: {
+    projects: number;
+    proposals: number;
+  };
 }
 
 export interface AuthResponse {
@@ -31,6 +35,12 @@ export interface UpdateProfileData {
 
 export interface UpdateUserRoleData {
   role: 'user' | 'admin';
+}
+
+export interface UpdateUserData {
+  name?: string;
+  email?: string;
+  role?: 'user' | 'admin';
 }
 
 export interface SignupData {
@@ -82,6 +92,23 @@ export const authService = {
   // Update user role (admin only)
   updateUserRole: async (userId: string, role: 'user' | 'admin'): Promise<void> => {
     await apiClient.put(`/api/auth/users/${userId}/role`, { role });
+  },
+
+  // Get single user (admin only)
+  getUser: async (userId: string): Promise<User> => {
+    const response: AxiosResponse<AuthResponse> = await apiClient.get(`/api/auth/users/${userId}`);
+    return response.data.data;
+  },
+
+  // Update user (admin only)
+  updateUser: async (userId: string, data: UpdateUserData): Promise<User> => {
+    const response: AxiosResponse<AuthResponse> = await apiClient.put(`/api/auth/users/${userId}`, data);
+    return response.data.data;
+  },
+
+  // Delete user (admin only)
+  deleteUser: async (userId: string): Promise<void> => {
+    await apiClient.delete(`/api/auth/users/${userId}`);
   },
 
   // Logout (client-side)

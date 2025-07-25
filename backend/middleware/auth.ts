@@ -119,11 +119,9 @@ function parseJwt(token: string) {
     // Add padding if needed
     const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
     
-    const jsonPayload = decodeURIComponent(atob(padded).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    
-    const payload = JSON.parse(jsonPayload);
+    // Use Buffer for base64 decoding in Node.js
+    const decoded = Buffer.from(padded, 'base64').toString('utf8');
+    const payload = JSON.parse(decoded);
     console.log('✅ JWT payload parsed successfully');
     return payload;
   } catch (error) {

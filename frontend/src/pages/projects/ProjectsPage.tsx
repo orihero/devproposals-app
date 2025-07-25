@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ProjectsList from '../../components/projects/ProjectsList';
 import CreateProject from '../../components/projects/CreateProject';
 import type { Project } from '../../services/api/projectService';
-import Header from '../home/components/Header';
+import { Header } from '../../components/shared';
 
 const ProjectsPage: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
