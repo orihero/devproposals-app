@@ -21,18 +21,9 @@ export const authenticateToken = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    console.log('🔍 Auth middleware - Request headers:', {
-      authorization: !!req.headers.authorization,
-      'x-clerk-id': !!req.headers['x-clerk-id'],
-      'user-agent': req.headers['user-agent'],
-      url: req.url,
-      method: req.method
-    });
-    
     const authHeader = req.headers.authorization;
     
     if (!authHeader) {
-      console.log('❌ No authorization header found');
       res.status(401).json({
         success: false,
         error: {
@@ -45,14 +36,12 @@ export const authenticateToken = async (
 
     // Extract token from Bearer header
     const token = authHeader.replace('Bearer ', '');
-    console.log('🔐 Received token from frontend:', token.substring(0, 20) + '...');
     
-    // Parse the JWT token to extract user information
-    const tokenData = parseJwt(token);
-    console.log('🔍 Parsed token data:', tokenData);
+    // For now, we'll use a simple token verification
+    // In production, you should verify the JWT token with Clerk's public key
+    const tokenData = parseJWT(token);
     
     if (!tokenData || !tokenData.sub) {
-      console.log('❌ Invalid token data:', { tokenData, hasSub: !!tokenData?.sub });
       res.status(401).json({
         success: false,
         error: {
@@ -63,20 +52,19 @@ export const authenticateToken = async (
       return;
     }
 
-    // Find user in our database using clerkId
-    const user = await User.findOne({ clerkId: tokenData.sub });
-    console.log('👤 User lookup result:', { found: !!user, clerkId: tokenData.sub });
+    // Find or create user in our database
+    let user = await User.findOne({ clerkId: tokenData.sub });
     
     if (!user) {
-      console.log('❌ User not found in database:', tokenData.sub);
-      res.status(401).json({
-        success: false,
-        error: {
-          code: 'USER_NOT_FOUND',
-          message: 'User not found. Please sign up first.',
-        },
+      // Create new user in our database
+      user = new User({
+        clerkId: tokenData.sub,
+        email: tokenData.email || '',
+        name: tokenData.name || 'User',
+        role: 'user',
+        imageUrl: tokenData.picture,
       });
-      return;
+      await user.save();
     }
 
     // Set user info in request
@@ -86,11 +74,10 @@ export const authenticateToken = async (
       role: user.role,
       clerkId: user.clerkId,
     };
-    console.log('✅ Authentication successful for user:', req.authUser);
 
     next();
   } catch (error) {
-    console.error('❌ Token authentication error:', error);
+    console.error('❌ Authentication error:', error);
     res.status(401).json({
       success: false,
       error: {
@@ -101,62 +88,60 @@ export const authenticateToken = async (
   }
 };
 
-// JWT parser for Clerk tokens
-function parseJwt(token: string) {
+// Simple JWT parser (for development - use proper verification in production)
+function parseJWT(token: string) {
   try {
-    console.log('🔍 Parsing JWT token...');
     const parts = token.split('.');
-    console.log('📦 Token parts:', parts.length);
-    
     if (parts.length !== 3) {
-      console.log('❌ Invalid JWT format - expected 3 parts');
       return null;
     }
     
-    const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    
-    // Add padding if needed
-    const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
-    
-    // Use Buffer for base64 decoding in Node.js
-    const decoded = Buffer.from(padded, 'base64').toString('utf8');
-    const payload = JSON.parse(decoded);
-    console.log('✅ JWT payload parsed successfully');
-    return payload;
+    const payload = parts[1];
+    const decoded = Buffer.from(payload, 'base64').toString('utf-8');
+    return JSON.parse(decoded);
   } catch (error) {
-    console.error('❌ JWT parsing error:', error);
     return null;
   }
 }
 
-export const requireRole = (roles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    if (!req.authUser) {
-      res.status(401).json({
-        success: false,
-        error: {
-          code: 'UNAUTHORIZED',
-          message: 'Authentication required',
-        },
-      });
-      return;
-    }
+// Role-based middleware
+export const requireUser = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.authUser) {
+    return res.status(401).json({
+      success: false,
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Authentication required',
+      },
+    });
+  }
+  next();
+};
 
-    if (!roles.includes(req.authUser.role)) {
-      res.status(403).json({
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.authUser || req.authUser.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'Admin access required',
+      },
+    });
+  }
+  next();
+};
+
+export const requireRole = (role: string) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.authUser || req.authUser.role !== role) {
+      return res.status(403).json({
         success: false,
         error: {
           code: 'FORBIDDEN',
-          message: 'Insufficient permissions',
+          message: `${role} access required`,
         },
       });
-      return;
     }
-
     next();
   };
-};
-
-export const requireAdmin = requireRole(['admin']);
-export const requireUser = requireRole(['user', 'admin']); 
+}; 

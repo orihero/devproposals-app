@@ -28,13 +28,12 @@ export class OpenRouterService {
   private apiKey: string;
   private baseUrl: string;
 
-    constructor() {
+  constructor() {
     this.apiKey = process.env.OPENROUTER_API_KEY || '';
     this.baseUrl = 'https://openrouter.ai/api/v1';
 
-    console.log(`🔑 OpenRouter API Key Status: ${this.apiKey ? 'Configured' : 'Not configured'}`);
     if (!this.apiKey) {
-      console.warn('⚠️  OPENROUTER_API_KEY is not set. Please add it to your .env file.');
+      console.error('⚠️  OPENROUTER_API_KEY is not set. Please add it to your .env file.');
     }
   }
 
@@ -42,9 +41,6 @@ export class OpenRouterService {
     if (!this.apiKey) {
       throw new Error('OpenRouter API key not configured');
     }
-
-    console.log(`🤖 Sending ${fileContent.length} characters to OpenRouter for analysis`);
-    console.log(`🤖 First 300 characters of content:`, fileContent.substring(0, 300));
 
     const prompt = `
 Please analyze this proposal document and extract the following information in JSON format:
@@ -68,23 +64,32 @@ ${fileContent}
 Please respond with only the JSON object, no additional text.
 `;
 
-    console.log(`🤖 Sending prompt to OpenRouter...`);
+    const requestPayload = {
+      model: 'anthropic/claude-sonnet-4',
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: 2000
+    };
+
+    console.error('🤖 OPENROUTER REQUEST - Analyze Proposal:');
+    console.error('📤 Request URL:', `${this.baseUrl}/chat/completions`);
+    console.error('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
+    console.error('📤 Request Headers:', {
+      'Authorization': `Bearer ${this.apiKey.substring(0, 10)}...`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:3000',
+      'X-Title': 'DevProposals AI Analysis'
+    });
 
     try {
       const response = await axios.post(
         `${this.baseUrl}/chat/completions`,
-        {
-          model: 'anthropic/claude-sonnet-4',
-          // model: 'google/gemini-2.0-flash-exp:free',
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.1,
-          max_tokens: 2000
-        },
+        requestPayload,
         {
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
@@ -98,8 +103,11 @@ Please respond with only the JSON object, no additional text.
       const aiResponse = response.data as OpenRouterResponse;
       const content = aiResponse.choices[0]?.message?.content;
 
-      console.log(`🤖 OpenRouter response received`);
-      console.log(`🤖 Response content:`, content);
+      console.error('🤖 OPENROUTER RESPONSE - Analyze Proposal:');
+      console.error('📥 Response Status:', response.status);
+      console.error('📥 Response Headers:', response.headers);
+      console.error('📥 Full Response:', JSON.stringify(response.data, null, 2));
+      console.error('📥 Extracted Content:', content);
 
       if (!content) {
         throw new Error('No response from AI');
@@ -108,13 +116,12 @@ Please respond with only the JSON object, no additional text.
       // Try to parse JSON from the response
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        console.error(`🤖 No JSON found in response:`, content);
+        console.error('🤖 No JSON found in response:', content);
         throw new Error('Invalid JSON response from AI');
       }
 
-      console.log(`🤖 Extracted JSON:`, jsonMatch[0]);
       const parsed = JSON.parse(jsonMatch[0]);
-      console.log(`🤖 Parsed analysis result:`, parsed);
+      console.error('🤖 Parsed analysis result:', JSON.stringify(parsed, null, 2));
       
       return {
         totalCost: parsed.totalCost || undefined,
@@ -128,36 +135,38 @@ Please respond with only the JSON object, no additional text.
           aiSuggestions: Array.isArray(parsed.analysis?.aiSuggestions) ? parsed.analysis.aiSuggestions : []
         }
       };
-    } catch (error) {
-      console.error('OpenRouter API error:', error);
+    } catch (error: any) {
+      console.error('❌ OpenRouter API error:', error);
+      if (error.response) {
+        console.error('❌ OpenRouter Error Response:', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data
+        });
+      }
       throw new Error('Failed to analyze proposal with AI');
     }
   }
 
   async analyzeProposal(filePath: string): Promise<ProposalAnalysis> {
     try {
-      console.log(`📁 Analyzing proposal file: ${filePath}`);
       const fileContent = await FileReader.readFileContent(filePath);
-      console.log(`📁 File content extracted successfully, length: ${fileContent.length}`);
       return await this.analyzeWithAI(fileContent);
     } catch (error) {
-      console.error('Proposal analysis error:', error);
+      console.error('❌ Proposal analysis error:', error);
       throw error;
     }
   }
 
   async generateComparisonSummary(project: any, proposals: any[]): Promise<string> {
     try {
-      console.log(`📊 Generating comparison summary for ${proposals.length} proposals`);
-      
       // Read project document content if available
       let projectContent = '';
       if (project.documentFile) {
         try {
           projectContent = await FileReader.readFileContent(project.documentFile);
-          console.log(`📄 Project document content extracted, length: ${projectContent.length}`);
         } catch (error) {
-          console.warn('⚠️  Could not read project document:', error);
+          console.error('❌ Could not read project document:', error);
         }
       }
 
@@ -168,9 +177,8 @@ Please respond with only the JSON object, no additional text.
           try {
             const content = await FileReader.readFileContent(proposal.proposalFile);
             proposalContents[proposal.companyName || `Proposal ${proposal._id}`] = content;
-            console.log(`📄 Proposal content extracted for ${proposal.companyName || proposal._id}, length: ${content.length}`);
           } catch (error) {
-            console.warn(`⚠️  Could not read proposal file for ${proposal.companyName || proposal._id}:`, error);
+            console.error(`❌ Could not read proposal file for ${proposal.companyName || proposal._id}:`, error);
           }
         }
       }
@@ -178,22 +186,31 @@ Please respond with only the JSON object, no additional text.
       // Create the comparison prompt
       const comparisonPrompt = this.createComparisonPrompt(project, proposals, projectContent, proposalContents);
       
-      console.log(`🤖 Sending comparison analysis to OpenRouter...`);
-      console.log(`🤖 Prompt size: ${comparisonPrompt.length} characters`);
+      const requestPayload = {
+        model: 'anthropic/claude-sonnet-4',
+        messages: [
+          {
+            role: 'user',
+            content: comparisonPrompt
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 4000
+      };
+
+      console.error('🤖 OPENROUTER REQUEST - Generate Comparison Summary:');
+      console.error('📤 Request URL:', `${this.baseUrl}/chat/completions`);
+      console.error('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
+      console.error('📤 Request Headers:', {
+        'Authorization': `Bearer ${this.apiKey.substring(0, 10)}...`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:3000',
+        'X-Title': 'DevProposals Comparison Analysis'
+      });
       
       const response = await axios.post(
         `${this.baseUrl}/chat/completions`,
-        {
-          model: 'anthropic/claude-sonnet-4',
-          messages: [
-            {
-              role: 'user',
-              content: comparisonPrompt
-            }
-          ],
-          temperature: 0.1,
-          max_tokens: 4000
-        },
+        requestPayload,
         {
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
@@ -207,18 +224,23 @@ Please respond with only the JSON object, no additional text.
       const aiResponse = response.data as OpenRouterResponse;
       const content = aiResponse.choices[0]?.message?.content;
 
+      console.error('🤖 OPENROUTER RESPONSE - Generate Comparison Summary:');
+      console.error('📥 Response Status:', response.status);
+      console.error('📥 Response Headers:', response.headers);
+      console.error('📥 Full Response:', JSON.stringify(response.data, null, 2));
+      console.error('📥 Extracted Content:', content);
+
       if (!content) {
         throw new Error('No response from AI');
       }
 
-      console.log(`🤖 Comparison summary generated successfully`);
       return content;
     } catch (error: any) {
-      console.error('Comparison summary generation error:', error);
+      console.error('❌ Comparison summary generation error:', error);
       
       // Log more details about the error
       if (error.response) {
-        console.error('OpenRouter API Error Details:');
+        console.error('❌ OpenRouter API Error Details:');
         console.error('Status:', error.response.status);
         console.error('Status Text:', error.response.statusText);
         console.error('Response Data:', error.response.data);
@@ -398,7 +420,7 @@ Generate a comprehensive comparison following this framework, ensuring thorough 
     // Check if the prompt is too long and truncate if necessary
     const maxPromptLength = 200000; // Conservative limit for OpenRouter
     if (fullPrompt.length > maxPromptLength) {
-      console.warn(`⚠️  Prompt too long (${fullPrompt.length} chars), truncating to ${maxPromptLength} chars`);
+      console.error(`⚠️  Prompt too long (${fullPrompt.length} chars), truncating to ${maxPromptLength} chars`);
       return fullPrompt.substring(0, maxPromptLength) + '\n\n[Prompt truncated due to length limits...]';
     }
 

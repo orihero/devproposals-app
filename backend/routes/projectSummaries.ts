@@ -108,7 +108,7 @@ router.post('/:projectId', authenticateToken, async (req: Request, res: Response
       }
     });
   } catch (error) {
-    console.error('Project summary creation error:', error);
+    console.error('❌ Project summary creation error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'Failed to save project summary'
@@ -181,7 +181,7 @@ router.get('/:projectId', authenticateToken, async (req: Request, res: Response)
       }
     });
   } catch (error) {
-    console.error('Project summary fetch error:', error);
+    console.error('❌ Project summary fetch error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'Failed to fetch project summary'
@@ -276,7 +276,7 @@ router.put('/:projectId', authenticateToken, async (req: Request, res: Response)
       }
     });
   } catch (error) {
-    console.error('Project summary update error:', error);
+    console.error('❌ Project summary update error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'Failed to update project summary'
@@ -338,7 +338,7 @@ router.delete('/:projectId', authenticateToken, async (req: Request, res: Respon
       projectId
     });
   } catch (error) {
-    console.error('Project summary deletion error:', error);
+    console.error('❌ Project summary deletion error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'Failed to delete project summary'
