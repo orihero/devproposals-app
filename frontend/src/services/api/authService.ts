@@ -23,9 +23,19 @@ export interface AuthResponse {
   message?: string;
 }
 
+export interface UserResponse {
+  success: boolean;
+  data: {
+    user: User;
+  };
+  message?: string;
+}
+
 export interface UsersResponse {
   success: boolean;
-  data: User[];
+  data: {
+    users: User[];
+  };
 }
 
 export interface UpdateProfileData {
@@ -73,20 +83,20 @@ export const authService = {
 
   // Get current user profile
   getProfile: async (): Promise<User> => {
-    const response: AxiosResponse<AuthResponse> = await apiClient.get('/api/auth/me');
-    return response.data.data;
+    const response: AxiosResponse<UserResponse> = await apiClient.get('/api/auth/me');
+    return response.data.data.user;
   },
 
   // Update user profile
   updateProfile: async (data: UpdateProfileData): Promise<User> => {
-    const response: AxiosResponse<AuthResponse> = await apiClient.put('/api/auth/me', data);
-    return response.data.data;
+    const response: AxiosResponse<UserResponse> = await apiClient.put('/api/auth/me', data);
+    return response.data.data.user;
   },
 
   // Get all users (admin only)
   getUsers: async (): Promise<User[]> => {
     const response: AxiosResponse<UsersResponse> = await apiClient.get('/api/auth/users');
-    return response.data.data;
+    return response.data.data.users;
   },
 
   // Update user role (admin only)
@@ -96,14 +106,14 @@ export const authService = {
 
   // Get single user (admin only)
   getUser: async (userId: string): Promise<User> => {
-    const response: AxiosResponse<AuthResponse> = await apiClient.get(`/api/auth/users/${userId}`);
-    return response.data.data;
+    const response: AxiosResponse<UserResponse> = await apiClient.get(`/api/auth/users/${userId}`);
+    return response.data.data.user;
   },
 
   // Update user (admin only)
   updateUser: async (userId: string, data: UpdateUserData): Promise<User> => {
-    const response: AxiosResponse<AuthResponse> = await apiClient.put(`/api/auth/users/${userId}`, data);
-    return response.data.data;
+    const response: AxiosResponse<UserResponse> = await apiClient.put(`/api/auth/users/${userId}`, data);
+    return response.data.data.user;
   },
 
   // Delete user (admin only)
