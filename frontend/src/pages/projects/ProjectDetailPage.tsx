@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Header } from '../../components/shared';
 import { projectService, type Project } from '../../services/api/projectService';
 import { proposalService, type Proposal, type ComparisonSummary } from '../../services/api/proposalService';
-import { projectSummaryService, type ProjectSummary as ProjectSummaryType, type CreateProjectSummaryRequest } from '../../services/api/projectSummaryService';
+import { projectSummaryService, type CreateProjectSummaryRequest } from '../../services/api/projectSummaryService';
 import CreateProposal from '../../components/proposals/CreateProposal';
 import ProjectSummary from '../../components/projects/ProjectSummary';
 

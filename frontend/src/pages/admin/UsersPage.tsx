@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { Header } from '../../components/shared';
 import authService, { type User } from '../../services/api/authService';
-import { projectService, type Project } from '../../services/api/projectService';
 
 const UsersPage: React.FC = () => {
   const user = useUser();

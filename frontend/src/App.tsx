@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react';
 import { useClerkAuthSync } from './hooks/useClerkAuth';
 import Dashboard from './components/dashboard/Dashboard';
-import AdminDashboard from './components/admin/AdminDashboard';
+
 import SignInPage from './components/auth/SignInPage';
 import SignUpPage from './components/auth/SignUpPage';
 import Home from './pages/home/Home';
@@ -14,7 +14,6 @@ import UsersPage from './pages/admin/UsersPage';
 import UserDetailPage from './pages/admin/UserDetailPage';
 import UserProjectsPage from './pages/admin/UserProjectsPage';
 import AdminIndexPage from './pages/admin/AdminIndexPage';
-import UserActivityPage from './pages/admin/UserActivityPage';
 
 // Import your Clerk publishable key
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_demo-key';
@@ -60,19 +59,7 @@ const RoleBasedDashboard: React.FC = () => {
   );
 };
 
-// Admin dashboard component
-const AdminDashboardRoute: React.FC = () => {
-  return (
-    <>
-      <SignedIn>
-        <AdminDashboard />
-      </SignedIn>
-      <SignedOut>
-        <Navigate to="/sign-in" replace />
-      </SignedOut>
-    </>
-  );
-};
+
 
 // Clerk auth sync component
 const ClerkAuthSync: React.FC = () => {

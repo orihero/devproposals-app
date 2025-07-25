@@ -361,16 +361,7 @@ const ProjectSummary: React.FC<ProjectSummaryProps> = ({
     }
   };
 
-  const handleDelete = async () => {
-    if (!summary) return;
-    
-    try {
-      await projectSummaryService.deleteProjectSummary(projectId);
-      setSummary(null);
-    } catch (error: any) {
-      console.error('Failed to delete project summary:', error);
-    }
-  };
+
 
   useEffect(() => {
     loadSummary();

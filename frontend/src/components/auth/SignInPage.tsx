@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { useSignIn, useUser, useAuth } from '@clerk/clerk-react';
+import { useSignIn, useAuth } from '@clerk/clerk-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { useAuthStore } from '../../stores/authStore';
 
 const SignInPage: React.FC = () => {
   const { isLoaded, signIn, setActive } = useSignIn();
-  const { user: clerkUser } = useUser();
   const { isSignedIn } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
