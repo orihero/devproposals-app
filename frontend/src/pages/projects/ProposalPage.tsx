@@ -57,17 +57,7 @@ const ProposalPage: React.FC = () => {
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'accepted':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
-      case 'pending':
-      default:
-        return 'bg-yellow-100 text-yellow-800';
-    }
-  };
+
 
   if (isLoading) {
     return (
@@ -118,9 +108,6 @@ const ProposalPage: React.FC = () => {
             <p className="text-gray-600 mt-1">Submitted {formatDate(proposal.createdAt)}</p>
           </div>
           <div className="flex items-center space-x-3">
-            <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(proposal.status)}`}>
-              {proposal.status}
-            </span>
             <button
               onClick={handleDeleteProposal}
               disabled={isDeleting}

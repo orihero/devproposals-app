@@ -195,9 +195,6 @@ const UserProjectsPage: React.FC = () => {
                         Project
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Created
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -220,17 +217,7 @@ const UserProjectsPage: React.FC = () => {
                              </div>
                            </div>
                          </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                             project.status === 'completed' 
-                               ? 'bg-green-100 text-green-800' 
-                               : project.status === 'active'
-                               ? 'bg-blue-100 text-blue-800'
-                               : 'bg-gray-100 text-gray-800'
-                           }`}>
-                             {project.status}
-                           </span>
-                        </td>
+
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {project.createdAt ? formatDate(project.createdAt) : 'N/A'}
                         </td>

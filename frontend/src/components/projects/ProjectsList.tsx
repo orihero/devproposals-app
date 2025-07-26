@@ -16,19 +16,14 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed' | 'on-hold'>('all');
+
 
   const fetchProjects = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const params: any = {};
-      if (statusFilter !== 'all') {
-        params.status = statusFilter;
-      }
-
-      const result = await projectService.getProjects(params);
+      const result = await projectService.getProjects();
       setProjects(result.projects);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch projects');
@@ -39,7 +34,7 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
 
   useEffect(() => {
     fetchProjects();
-  }, [statusFilter, refreshTrigger]);
+  }, [refreshTrigger]);
 
   const handleDeleteProject = async (projectId: string) => {
     if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
@@ -55,18 +50,7 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
-      case 'on-hold':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -100,30 +84,11 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Filter Controls */}
-      <div className="flex flex-wrap items-center gap-4">
-        <div>
-          <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
-            Filter by Status
-          </label>
-          <select
-            id="status-filter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="all">All Projects</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-            <option value="on-hold">On Hold</option>
-          </select>
-        </div>
-        
-        <div className="ml-auto">
-          <span className="text-sm text-gray-600">
-            {projects.length} project{projects.length !== 1 ? 's' : ''}
-          </span>
-        </div>
+      {/* Project Count */}
+      <div className="flex justify-end">
+        <span className="text-sm text-gray-600">
+          {projects.length} project{projects.length !== 1 ? 's' : ''}
+        </span>
       </div>
 
       {/* Projects List */}
@@ -136,10 +101,7 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
           <p className="text-gray-600">
-            {statusFilter === 'all' 
-              ? 'Get started by creating your first project.'
-              : `No ${statusFilter} projects found.`
-            }
+            Get started by creating your first project.
           </p>
         </div>
       ) : (
@@ -151,13 +113,10 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
               className="block bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
             >
                 <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
                       {project.title}
                     </h3>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
-                      {project.status}
-                    </span>
                   </div>
 
                   {project.documentFile && (

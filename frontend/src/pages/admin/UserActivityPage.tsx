@@ -214,13 +214,7 @@ const UserActivityPage: React.FC = () => {
                             {project.duration && (
                               <span>Duration: {project.duration} days</span>
                             )}
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              project.status === 'active' ? 'bg-green-100 text-green-800' :
-                              project.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                              'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {project.status}
-                            </span>
+
                           </div>
                           <p className="text-xs text-gray-400 mt-2">
                             Created: {formatDate(project.createdAt)}

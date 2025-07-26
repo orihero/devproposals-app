@@ -11,12 +11,14 @@ interface ProjectSummaryProps {
   projectId: string;
   onSummaryGenerated?: (summary: ProjectSummaryType) => void;
   onRegenerate?: () => void;
+  onSummaryUpdated?: () => void;
 }
 
 const ProjectSummary: React.FC<ProjectSummaryProps> = ({
   projectId,
   onSummaryGenerated,
-  onRegenerate
+  onRegenerate,
+  onSummaryUpdated
 }) => {
   const [summary, setSummary] = useState<ProjectSummaryType | null>(null);
   const [loading, setLoading] = useState(false);
@@ -351,6 +353,7 @@ const ProjectSummary: React.FC<ProjectSummaryProps> = ({
       const summaryData = await projectSummaryService.getProjectSummary(projectId);
       setSummary(summaryData);
       onSummaryGenerated?.(summaryData);
+      onSummaryUpdated?.();
     } catch (error: any) {
       // Handle "not found" as no summary available, not an error
       if (error.message !== 'Resource not found' && error.message !== 'Project summary not found') {
